@@ -6,7 +6,7 @@
 #include <time.h>
 
 //git add .             # Añade todos los cambios al área de preparación.
-//git commit -m "Mensaje"  # Realiza un commit con un mensaje descriptivo.
+//git commit -m "boceto funcion 1"  # Realiza un commit con un mensaje descriptivo.
 //git push origin main
 //git pull: Sincroniza tu rama local con la rama remota.
 
