@@ -28,7 +28,7 @@ void printHashMap(HashMap *map) {
         Pair *par = map->buckets[i];
 
         if (par != NULL && par->is_active) {
-            printf("Bucket %ld -> Clave: %s | Valor: %s\n", i, par->key, (char *)par->value);
+            printf("");
         }
     }
 }
