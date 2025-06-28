@@ -2,6 +2,7 @@
 #define GESTOR_SERIES_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include "TDAs/map.h"
 #include "TDAs/list.h"
 
@@ -45,8 +46,8 @@ void gestor_imprimirSerie(const TipoSerie *s);
 // Agrega una nueva temporada al final de capsPorTemp con numCaps capítulos.
 void gestor_agregarTemporada(GestorSeries *g, TipoSerie *s, int numCaps);
 
-// Actualiza el progreso de la serie a la temporada `temp` y capítulo `cap`.
-void gestor_actualizarProgreso(GestorSeries *g, TipoSerie *s, int temp, int cap);
+// Devuelve 1 si el progreso se actualizó, 0 si el rango es inválido o error.
+int gestor_actualizarProgreso(GestorSeries *g, TipoSerie *s, int temp, int cap);
 
 // Libera memoria asociada a la Serie:
 // - libera el string de título

@@ -82,14 +82,38 @@ void gestor_agregarTemporada(GestorSeries *gestor, TipoSerie *serie, int numCaps
  * - Verifica que la temporada y capitulo sea valido.
  * - Si es valido, actualiza temporadaActual y capituloActual.
  */
-void gestor_actualizarProgreso(GestorSeries *gestor, TipoSerie *serie, int temporada, int capitulo)
+int gestor_actualizarProgreso(GestorSeries *gestor, TipoSerie *serie, int temporada, int capitulo)
 {
     if (!gestor || !serie)
     {
-        return;
+        return 0;
     }
 
-    // 1) Apilar estado anterior
+    // 1) Comprobar rango de temporada
+    int totalTemp = list_size(serie->capsPorTemp);
+    if (temporada < 1 || temporada > totalTemp)
+    {
+        printf("Error: temporada invalida (1–%d)\n", totalTemp);
+        return 0;
+    }
+
+    // 2) Extraer nº de capítulos de la temporada solicitada
+    //    list_first/list_next devuelven punteros a int con cada count
+    int *ptrCaps = list_first(serie->capsPorTemp);
+    for (int i = 1; i < temporada; ++i)
+    {
+        ptrCaps = list_next(serie->capsPorTemp);
+    }
+    int maxCaps = *ptrCaps;
+
+    // 3) Comprobar rango de capítulo dentro de esa temporada
+    if (capitulo < 1 || capitulo > maxCaps)
+    {
+        printf("Error: capítulo inválido para la temporada %d (1–%d)\n", temporada, maxCaps);
+        return 0;
+    }
+
+    // 4) Apilar estado anterior y actualizar
     Action *act = malloc(sizeof *act);
     act->type     = UPDATE_PROGRESS;
     act->titulo   = strdup(serie->titulo);
@@ -97,16 +121,11 @@ void gestor_actualizarProgreso(GestorSeries *gestor, TipoSerie *serie, int tempo
     act->prevCap  = serie->capituloActual;
     list_pushFront(gestor->undoStack, act);
 
-    // 2) Validar y actualizar
-    int total = list_size(serie->capsPorTemp);
-    if (temporada < 1 || temporada > total || capitulo <1 || capitulo > *(int*)list_first(serie->capsPorTemp))
-    {
-        printf("Error: rango inválido\n");
-        return;
-    }
     serie->temporadaActual = temporada;
     serie->capituloActual  = capitulo;
+    return 1;
 }
+
 
 /**
  * Libera toda la memoria asociada a una serie:
@@ -354,12 +373,13 @@ void gestor_undo(GestorSeries *gestor)
       }
       case UPDATE_PROGRESS:
       {
-        // Buscamos la serie en el gestor por título
+
         TipoSerie *s = gestor_buscarSerie(gestor, accion->titulo);
         if (s)
         {
-            // Invertimos la acción: restauramos el progreso anterior
-            gestor_actualizarProgreso(gestor, s, accion->prevTemp, accion->prevCap);
+            // Restauramos directamente sin apilar nada
+            s->temporadaActual = accion->prevTemp;
+            s->capituloActual  = accion->prevCap;
         }
         break;
     }

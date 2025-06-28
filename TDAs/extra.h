@@ -46,4 +46,20 @@ void limpiarPantalla();
 
 void presioneTeclaParaContinuar();
 
+/**
+ * Lee un entero positivo (>0) desde stdin validando la entrada.
+ * @param mensaje Texto a mostrar como prompt.
+ * @return El número entero positivo ingresado por el usuario.
+ */
+int leerEnteroPositivo(const char *mensaje);
+
+/**
+ * Lee un título no vacío desde stdin, eliminando espacios iniciales y finales.
+ * Repite el prompt hasta que buffer contenga al menos un caracter imprimible.
+ * @param mensaje Texto a mostrar como prompt.
+ * @param buffer  Buffer donde alojar el título leído.
+ * @param size    Tamaño de buffer.
+ */
+void leerTitulo(const char *mensaje, char *buffer, size_t size);
+
 #endif

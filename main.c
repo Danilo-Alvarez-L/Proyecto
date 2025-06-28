@@ -36,7 +36,8 @@ static void mostrarMenuActualizar()
     printf("Seleccione una opcion: ");
 }
 
-int main() {
+int main()
+{
     GestorSeries gestor;
     char opcion;
     char buffer[MAX_TITLE_LEN];
@@ -53,40 +54,31 @@ int main() {
         switch (opcion)
         {
             case '1':
-            {  // Ingresar serie
-                int numTemp;
+            {
+                leerTitulo("Titulo de la serie: ", buffer, MAX_TITLE_LEN);
+
+                // 2) Verificación temprana:
+                if (gestor_buscarSerie(&gestor, buffer)) {
+                    printf("\nLa serie \"%s\" ya existe.\n", buffer);
+                    presioneTeclaParaContinuar();
+                    break;
+                }
+
+                // 3) Sólo si no existe, pedimos datos
                 List *capsPorTemp = list_create();
-
-                printf("Titulo de la serie: ");
-                fgets(buffer, MAX_TITLE_LEN, stdin);
-                buffer[strcspn(buffer, "\r\n")] = '\0';
-
-                printf("Numero de temporadas: ");
-                scanf("%d", &numTemp);
-                while ((_c = getchar()) != '\n' && _c != EOF) { }
-
+                int numTemp = leerEnteroPositivo("Numero de temporadas: ");
                 for (int i = 1; i <= numTemp; i++)
                 {
-                    int caps;
-                    printf("  Caps. temporada %d: ", i);
-                    scanf("%d", &caps);
-                    while ((_c = getchar()) != '\n' && _c != EOF) { }
-
-                    int *pc = malloc(sizeof(int));
-                    *pc = caps;
-                    list_pushBack(capsPorTemp, pc);
+                    char mensaje[64];
+                    snprintf(mensaje, sizeof(mensaje), "  Caps. temporada %d: ", i);
+                    int caps = leerEnteroPositivo(mensaje);
+                    int *numCapsPtr = malloc(sizeof(int));
+                    *numCapsPtr = caps;
+                    list_pushBack(capsPorTemp, numCapsPtr);
                 }
-
                 TipoSerie *serie = crearSerie(buffer, capsPorTemp);
-                if (gestor_agregar(&gestor, serie))
-                {
-                    printf("\nSerie \"%s\" agregada correctamente.\n", buffer);
-                }
-                else
-                {
-                    printf("\nLa serie \"%s\" ya existe.\n", buffer);
-                    gestor_LiberarYEliminarSerie(serie);
-                }
+                gestor_agregar(&gestor, serie);
+                printf("\nSerie \"%s\" agregada correctamente.\n", buffer);
                 presioneTeclaParaContinuar();
                 break;
             }
@@ -100,9 +92,7 @@ int main() {
 
             case '3':
             {  // Buscar serie
-                printf("Titulo de la serie a buscar: ");
-                fgets(buffer, MAX_TITLE_LEN, stdin);
-                buffer[strcspn(buffer, "\r\n")] = '\0';
+                leerTitulo("Titulo de la serie: ", buffer, MAX_TITLE_LEN);
 
                 TipoSerie *s = gestor_buscarSerie(&gestor, buffer);
                 if (s)
@@ -118,7 +108,7 @@ int main() {
             }
 
             case '4':
-            {  // Actualizar pendiente
+            {
                 mostrarMenuActualizar();
                 char subop;
                 scanf(" %c", &subop);
@@ -126,64 +116,55 @@ int main() {
 
                 if (subop == 'a')
                 {
-                    printf("Titulo de la serie: ");
-                    fgets(buffer, MAX_TITLE_LEN, stdin);
-                    buffer[strcspn(buffer, "\r\n")] = '\0';
-
-                    int caps;
-                    printf("Numero de capitulos de la nueva temporada: ");
-                    scanf("%d", &caps);
-                    while ((_c = getchar()) != '\n' && _c != EOF) { }
-
+                    // 1) Primero pedimos el título y verificamos existencia
+                    leerTitulo("Titulo de la serie: ", buffer, MAX_TITLE_LEN);
                     TipoSerie *s = gestor_buscarSerie(&gestor, buffer);
-                    if (s)
+                    if (!s)
                     {
-                        gestor_agregarTemporada(&gestor, s, caps);
-                        printf("Temporada agregada a \"%s\".\n", buffer);
+                        printf("\nLa serie \"%s\" no existe.\n", buffer);
+                        presioneTeclaParaContinuar();
+                        break;
                     }
-                    else
-                    {
-                        printf("Serie \"%s\" no encontrada.\n", buffer);
-                    }
+
+                    // 2) Sólo si existe, pedimos el número de capítulos
+                    int caps = leerEnteroPositivo("Número de capítulos de la nueva temporada: ");
+                    gestor_agregarTemporada(&gestor, s, caps);
+                    printf("Temporada agregada a \"%s\".\n", buffer);
+                    presioneTeclaParaContinuar();
                 }
                 else if (subop == 'b')
                 {
-                    printf("Titulo de la serie: ");
-                    fgets(buffer, MAX_TITLE_LEN, stdin);
-                    buffer[strcspn(buffer, "\r\n")] = '\0';
-
-                    int temp, cap;
-                    printf("Temporada (actual): ");
-                    scanf("%d", &temp);
-                    while ((_c = getchar()) != '\n' && _c != EOF) { }
-                    printf("Capitulo (actual): ");
-                    scanf("%d", &cap);
-                    while ((_c = getchar()) != '\n' && _c != EOF) { }
-
+                    // 1) Primero pedimos el título y verificamos existencia
+                    leerTitulo("Titulo de la serie: ", buffer, MAX_TITLE_LEN);
                     TipoSerie *s = gestor_buscarSerie(&gestor, buffer);
-                    if (s)
+                    if (!s)
                     {
-                        gestor_actualizarProgreso(&gestor, s, temp, cap);
+                        printf("\nLa serie \"%s\" no existe.\n", buffer);
+                        presioneTeclaParaContinuar();
+                        break;
+                    }
+
+                    // 2) Sólo si existe, pedimos temporada y capítulo
+                    int temp = leerEnteroPositivo("Temporada (actual): ");
+                    int cap  = leerEnteroPositivo("Capítulo (actual): ");
+
+                    if (gestor_actualizarProgreso(&gestor, s, temp, cap))
                         printf("Progreso actualizado en \"%s\".\n", buffer);
-                    }
-                    else
-                    {
-                        printf("Serie \"%s\" no encontrada.\n", buffer);
-                    }
+                    // si falla, gestor_actualizarProgreso ya imprimió el error
+
+                    presioneTeclaParaContinuar();
                 }
                 else
                 {
-                    printf("Opcion no valida.\n");
+                    printf("Opción no válida.\n");
+                    presioneTeclaParaContinuar();
                 }
-                presioneTeclaParaContinuar();
                 break;
             }
 
             case '5':
             {  // Eliminar serie
-                printf("Titulo de la serie a eliminar: ");
-                fgets(buffer, MAX_TITLE_LEN, stdin);
-                buffer[strcspn(buffer, "\r\n")] = '\0';
+                leerTitulo("Titulo de la serie: ", buffer, MAX_TITLE_LEN);
 
                 if (gestor_eliminarYliberar(&gestor, buffer))
                 {
@@ -199,9 +180,7 @@ int main() {
 
             case '6':
             {  // Marcar favorita
-                printf("Titulo de la serie a marcar favorita: ");
-                fgets(buffer, MAX_TITLE_LEN, stdin);
-                buffer[strcspn(buffer, "\r\n")] = '\0';
+                leerTitulo("Titulo de la serie a marcar favorita: ", buffer, MAX_TITLE_LEN);
 
                 if (gestor_agregarFavorito(&gestor, buffer))
                 {

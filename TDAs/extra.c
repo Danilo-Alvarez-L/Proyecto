@@ -1,5 +1,6 @@
 #include "extra.h"
-
+#include <errno.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 4096
 #define MAX_FIELDS      128
@@ -107,4 +108,78 @@ void presioneTeclaParaContinuar()
     puts("Presione una tecla para continuar...");
     int c;
     while ((c = getchar()) != '\n' && c != EOF) { }
+}
+
+int leerEnteroPositivo(const char *mensaje)
+{
+    char buffer[128];
+    char *ptrFinal;
+    long numero;
+
+    while (1)
+    {
+        printf("%s", mensaje);
+        if (!fgets(buffer, sizeof(buffer), stdin))
+        {
+            // Si hay EOF o error de I/O, limpiamos y reintentamos
+            clearerr(stdin);
+            continue;
+        }
+        // Quitamos el salto de línea final
+        buffer[strcspn(buffer, "\r\n")] = '\0';
+
+        errno = 0;
+        numero = strtol(buffer, &ptrFinal, 10);
+
+        // Validamos rango, formato y positividad
+        if (errno == ERANGE ||
+            ptrFinal == buffer ||
+            *ptrFinal != '\0' ||
+            numero <= 0)
+        {
+            printf("Entrada invalida. Por favor, ingrese un numero entero positivo mayor que cero.\n");
+        }
+        else
+        {
+            return (int)numero;
+        }
+    }
+}
+
+static char *trimWhitespace(char *str)
+{
+    char *end;
+    // Quitar espacios al inicio
+    while (isspace((unsigned char)*str)) str++;
+    if (*str == '\0') return str;
+    // Quitar espacios al final
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+    end[1] = '\0';
+    return str;
+}
+
+void leerTitulo(const char *mensaje, char *buffer, size_t size)
+{
+    char *trimmed;
+    while (1)
+    {
+        printf("%s", mensaje);
+        if (!fgets(buffer, size, stdin))
+        {
+            clearerr(stdin);
+            continue;
+        }
+        buffer[strcspn(buffer, "\r\n")] = '\0';
+        trimmed = trimWhitespace(buffer);
+        if (trimmed[0] == '\0') {
+            printf("Entrada invalida. El titulo no puede estar vacio.\n");
+        }
+        else
+        {
+            // Mover trimmed al inicio de buffer
+            memmove(buffer, trimmed, strlen(trimmed) + 1);
+            break;
+        }
+    }
 }
