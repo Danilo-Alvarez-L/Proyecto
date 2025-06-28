@@ -63,15 +63,18 @@ char **leer_linea_csv(FILE *archivo, char separador) {
 }
 
 
-List *split_string(const char *str, const char *delim) {
-  List *result = list_create();
-  char *token = strtok((char *)str, delim);
+List *split_string(const char *str, const char *delim)
+{
+    List *result = list_create();
+    char *token = strtok((char *)str, delim);
 
-  while (token != NULL) {
-    // Eliminar espacios en blanco al inicio del token
-    while (*token == ' ') {
-      token++;
-    }
+    while (token != NULL)
+    {
+        // Eliminar espacios en blanco al inicio del token
+        while (*token == ' ')
+        {
+            token++;
+        }
 
     // Eliminar espacios en blanco al final del token
     char *end = token + strlen(token) - 1;
@@ -94,10 +97,14 @@ List *split_string(const char *str, const char *delim) {
 }
 
 // Función para limpiar la pantalla
-void limpiarPantalla() { system("cls"); }
+void limpiarPantalla()
+{
+    system("cls");
+}
 
-void presioneTeclaParaContinuar() {
-  puts("Presione una tecla para continuar...");
-  getchar(); // Consume el '\n' del buffer de entrada
-  getchar(); // Espera a que el usuario presione una tecla
+void presioneTeclaParaContinuar()
+{
+    puts("Presione una tecla para continuar...");
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }
 }
